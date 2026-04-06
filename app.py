@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 
 # 데이터 저장 파일
-ACCUSE_FILE = 'accusations_v2.csv'
+ACCUSE_FILE = 'accusations_final.csv'
 
 def load_data():
     if os.path.exists(ACCUSE_FILE):
@@ -29,20 +29,11 @@ with tab1:
     st.header("신고서 작성")
     with st.form("accuse_form", clear_on_submit=True):
         st.info("💡 모든 항목은 익명으로 처리됩니다. 증거가 있다면 상세히 적어주세요.")
-        
         target = st.text_input("피고소인 (누구를 고소합니까?)")
         content = st.text_area("사건 내용 (상세 상황 설명)")
-        
-        st.markdown("---")
-        st.subheader("📁 증거 제시 (선택 사항)")
-        st.caption("증거가 없다면 공란으로 두셔도 됩니다.")
-        
         witness = st.text_input("증인 (함께 있었던 사람의 이름)")
-        evidence_text = st.text_area("글로 설명하는 추가 증거 (예: 대화 내용, 상황 묘사 등)")
-        
-        # 사진 업로드 (Streamlit Cloud 배포 시 파일 용량 제한 주의)
+        evidence_text = st.text_area("글로 설명하는 추가 증거 (예: 대화 내용 등)")
         evidence_img = st.file_uploader("사진 증거 업로드 (이미지 파일)", type=['png', 'jpg', 'jpeg'])
-        
         submit = st.form_submit_button("고소장 최종 제출")
         
         if submit:
@@ -60,8 +51,6 @@ with tab1:
                 st.session_state.accuse_db = pd.concat([st.session_state.accuse_db, pd.DataFrame([new_data])], ignore_index=True)
                 save_data(st.session_state.accuse_db)
                 st.success(f"접수 완료! (번호: CASE-{new_idx:03d})")
-                if evidence_img:
-                    st.info("📸 사진 증거가 첨부되었습니다. (관리자 확인 가능)")
             else:
                 st.error("피고소인과 사건 내용은 필수 입력 사항입니다.")
 
@@ -73,4 +62,19 @@ with tab2:
     if admin_pw == "12345":
         if not st.session_state.accuse_db.empty:
             st.subheader("📋 전체 고소 목록")
-            #
+            edited_df = st.data_editor(st.session_state.accuse_db, use_container_width=True)
+            if st.button("상태 변경 저장"):
+                st.session_state.accuse_db = edited_df
+                save_data(st.session_state.accuse_db)
+                st.rerun()
+
+            st.divider()
+            case_no = st.selectbox("상세 확인 사건 번호", st.session_state.accuse_db['접수번호'])
+            case_info = st.session_state.accuse_db[st.session_state.accuse_db['접수번호'] == case_no].iloc[0]
+            st.write(f"**피고소인:** {case_info['피고소인']} | **증인:** {case_info['증인']}")
+            st.info(f"**내용:** {case_info['사건내용']}")
+            st.success(f"**추가 증거:** {case_info['추가설명']}")
+        else:
+            st.write("접수된 고소장이 없습니다.")
+    elif admin_pw != "":
+        st.error("비밀번호가 틀렸습니다.")
