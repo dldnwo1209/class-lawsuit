@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 
 # 데이터 저장 파일
-ACCUSE_FILE = 'accusations_mobile_v6.csv'
+ACCUSE_FILE = 'accusations_mobile_final.csv'
 
 def load_data():
     if os.path.exists(ACCUSE_FILE):
@@ -32,7 +32,7 @@ st.title("⚖️ 학급 고소장 접수")
 menu = st.radio("메뉴 선택", ["📝 고소장 작성", "🔒 인권예절부 관리"], horizontal=True)
 st.divider()
 
-# --- 1. 고소장 작성 (체크박스 적용) ---
+# --- 1. 고소장 작성 ---
 if menu == "📝 고소장 작성":
     st.subheader("신고서 작성")
     with st.form("accuse_form", clear_on_submit=True):
@@ -40,11 +40,11 @@ if menu == "📝 고소장 작성":
         content = st.text_area("📄 사건 내용", placeholder="어떤 일이 있었나요?", height=150)
         
         st.write("🔍 **추가 증거 확인**")
-        # 사진 업로드 대신 체크박스 배치
         has_photo = st.checkbox("📸 제출 가능한 사진/영상 증거가 있습니다.")
         
+        # 안내 문구 수정: 링크 관련 내용 삭제 및 '사진 증거 내용 설명' 추가
         evidence_text = st.text_area("✍️ 증거 상세 설명", 
-                                   placeholder="증인 이름, 대화 내용 혹은 사진 증거 링크(구글 드라이브 등)를 적어주세요.")
+                                   placeholder="증인 이름, 대화 내용 혹은 사진 증거 내용 설명을 적어주세요.")
         
         if st.form_submit_button("🚀 고소장 최종 제출하기"):
             if target and content:
@@ -78,7 +78,6 @@ else:
             idx = st.session_state.accuse_db[st.session_state.accuse_db['접수번호'] == selected_case].index[0]
             case_info = st.session_state.accuse_db.loc[idx]
             
-            # 카드형 상세 정보
             st.info(f"**현재 상태: {case_info['상태']}**")
             st.write(f"**피고소인:** {case_info['피고소인']}")
             st.write(f"**사진 증거 여부:** {case_info['사진보유']}")
@@ -86,7 +85,7 @@ else:
             with st.expander("📄 사건 내용 보기", expanded=True):
                 st.write(case_info['사건내용'])
             
-            with st.expander("✍️ 추가 증거/링크 보기"):
+            with st.expander("✍️ 추가 증거 설명 보기"):
                 st.write(case_info['추가설명'])
             
             st.divider()
