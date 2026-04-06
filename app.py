@@ -4,13 +4,13 @@ import os
 from datetime import datetime
 
 # 데이터 저장 파일
-ACCUSE_FILE = 'accusations_mobile_final.csv'
+ACCUSE_FILE = 'accusations_mobile_final_v2.csv'
 
 def load_data():
     if os.path.exists(ACCUSE_FILE):
         return pd.read_csv(ACCUSE_FILE)
     else:
-        return pd.DataFrame(columns=['접수번호', '날짜', '피고소인', '사건내용', '사진보유', '추가설명', '상태'])
+        return pd.DataFrame(columns=['접수번호', '날짜', '피고소인', '사건내용', '사진보유', '추가증거내용', '상태'])
 
 def save_data(df):
     df.to_csv(ACCUSE_FILE, index=False)
@@ -42,9 +42,9 @@ if menu == "📝 고소장 작성":
         st.write("🔍 **추가 증거 확인**")
         has_photo = st.checkbox("📸 제출 가능한 사진/영상 증거가 있습니다.")
         
-        # 안내 문구 수정: 링크 관련 내용 삭제 및 '사진 증거 내용 설명' 추가
-        evidence_text = st.text_area("✍️ 증거 상세 설명", 
-                                   placeholder="증인 이름, 대화 내용 혹은 사진 증거 내용 설명을 적어주세요.")
+        # '설명'을 삭제하고 '내용'으로 변경
+        evidence_text = st.text_area("✍️ 증거 상세 내용", 
+                                   placeholder="증인 이름, 대화 내용 혹은 사진 증거 내용을 적어주세요.")
         
         if st.form_submit_button("🚀 고소장 최종 제출하기"):
             if target and content:
@@ -55,7 +55,7 @@ if menu == "📝 고소장 작성":
                     '피고소인': target,
                     '사건내용': content,
                     '사진보유': "보유" if has_photo else "없음",
-                    '추가설명': evidence_text if evidence_text else "내용 없음",
+                    '추가증거내용': evidence_text if evidence_text else "내용 없음",
                     '상태': '검토 대기'
                 }
                 st.session_state.accuse_db = pd.concat([st.session_state.accuse_db, pd.DataFrame([new_data])], ignore_index=True)
@@ -85,8 +85,8 @@ else:
             with st.expander("📄 사건 내용 보기", expanded=True):
                 st.write(case_info['사건내용'])
             
-            with st.expander("✍️ 추가 증거 설명 보기"):
-                st.write(case_info['추가설명'])
+            with st.expander("✍️ 추가 증거 내용 보기"):
+                st.write(case_info['추가증거내용'])
             
             st.divider()
             new_status = st.selectbox("상태 변경", ["검토 대기", "재판 회부", "기각", "처리 완료"])
